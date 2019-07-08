@@ -1,25 +1,28 @@
 #include <fstream>
 #include <sstream>
-#include "ray.h"
+#include "sphere.h"
+#include "hitablelist.h"
+
+#define MAX_FLOAT 1e8
 
 using namespace std;
 
-bool hit_sphere(const Vec3& center, float radius, const Ray& r)
-{
-	Vec3 ac = r.origin() - center;
-	float a = r.direction().norm2();
-	float b = 2.0*r.direction().dot(ac);
-	float c = ac.norm2() - radius * radius;
-	float delta = b * b - 4 * a*c;
-	return (delta >= 0);
-}
 
-Vec3 color(const Ray& r)
+Vec3 color(Ray& r, HitableList* world)
 {
-	if (hit_sphere(Vec3(0, 0, -1), 0.5, r)) return Vec3(1, 0, 0);
-	Vec3 direction = r.direction().unit();
-	float t = 0.5*(direction.y() + 1.0);
-	return (1 - t)*Vec3(1, 1, 1) + t * Vec3(0.5, 0.7, 1.0);
+	HitRecord record;
+	if (world->hit(r, 0, MAX_FLOAT, record))
+	{
+		return 0.5*Vec3(record.normal.x() + 1, record.normal.y() + 1, record.normal.z() + 1);
+	}
+	else
+	{
+		Vec3 direction = r.direction().unit();
+		float t = 0.5*(direction.y() + 1);
+		return (1 - t)*Vec3(1, 1, 1) + t * Vec3(0.5, 0.7, 1);
+	}
+	
+
 }
 
 int main()
@@ -35,6 +38,13 @@ int main()
 	Vec3 horizontal(4, 0, 0);
 	Vec3 vertical(0, 2, 0);
 	Vec3 origin(0, 0, 0);
+
+	Hitable* object1 = new Sphere(Vec3(0, 0, -1), 0.5);
+	Hitable* object2 = new Sphere(Vec3(0, -100.5, -1), 100);
+	HitableList* world = new HitableList();
+	world->add(object1);
+	world->add(object2);
+	
 	for (int i = ny - 1; i >= 0; i--)
 	{
 		for (int j = 0; j < nx; j++)
@@ -42,7 +52,7 @@ int main()
 			float v = float(i) / float(ny);
 			float u = float(j) / float(nx);
 			Ray r(origin, lower_left + horizontal * u + vertical * v);
-			Vec3 col = color(r);
+			Vec3 col = color(r, world);
 			int ir = int(255.99*col[0]);
 			int ig = int(255.99*col[1]);
 			int ib = int(255.99*col[2]);
