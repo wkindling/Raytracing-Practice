@@ -1,12 +1,15 @@
 #include <fstream>
 #include <sstream>
+#include <random>
+#include <ctime>
+
 #include "sphere.h"
 #include "hitablelist.h"
+#include "camera.h"
 
 #define MAX_FLOAT 1e8
 
 using namespace std;
-
 
 Vec3 color(Ray& r, HitableList* world)
 {
@@ -21,8 +24,6 @@ Vec3 color(Ray& r, HitableList* world)
 		float t = 0.5*(direction.y() + 1);
 		return (1 - t)*Vec3(1, 1, 1) + t * Vec3(0.5, 0.7, 1);
 	}
-	
-
 }
 
 int main()
@@ -31,28 +32,37 @@ int main()
 
 	int nx = 200;
 	int ny = 100;
-	os << "P3" << endl;
-	os << nx << " " << ny << endl;
-	os << "255" << endl;
-	Vec3 lower_left(-2, -1, -1);
-	Vec3 horizontal(4, 0, 0);
-	Vec3 vertical(0, 2, 0);
-	Vec3 origin(0, 0, 0);
+	int ns = 300;
 
 	Hitable* object1 = new Sphere(Vec3(0, 0, -1), 0.5);
 	Hitable* object2 = new Sphere(Vec3(0, -100.5, -1), 100);
 	HitableList* world = new HitableList();
 	world->add(object1);
 	world->add(object2);
+
+	Camera camera;
+
+	default_random_engine e(time(0));
+	uniform_real_distribution<double> ue(0, 1);
+
+	os << "P3" << endl;
+	os << nx << " " << ny << endl;
+	os << "255" << endl;
 	
 	for (int i = ny - 1; i >= 0; i--)
 	{
 		for (int j = 0; j < nx; j++)
 		{
-			float v = float(i) / float(ny);
-			float u = float(j) / float(nx);
-			Ray r(origin, lower_left + horizontal * u + vertical * v);
-			Vec3 col = color(r, world);
+			Vec3 col(0);
+			for (int s = 0; s < ns; s++)
+			{
+				float u = float(j+ue(e)) / float(nx);
+				float v = float(i+ue(e)) / float(ny);
+				Ray r = camera.shoot_ray(u, v);
+				col += color(r, world);
+			}
+			col /= float(ns);
+
 			int ir = int(255.99*col[0]);
 			int ig = int(255.99*col[1]);
 			int ib = int(255.99*col[2]);
