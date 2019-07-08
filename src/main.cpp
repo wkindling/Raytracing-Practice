@@ -11,12 +11,27 @@
 
 using namespace std;
 
+default_random_engine e(time(0));
+uniform_real_distribution<double> ue(0, 1);
+
+Vec3 random_direction_in_sphere()
+{
+	Vec3 dir;
+	do
+	{
+		dir = 2.0*Vec3(ue(e), ue(e), ue(e)) - Vec3(1, 1, 1);
+	} while (dir.norm() >= 1.0);
+	return dir;
+}
+
 Vec3 color(Ray& r, HitableList* world)
 {
 	HitRecord record;
-	if (world->hit(r, 0, MAX_FLOAT, record))
+	if (world->hit(r, 0.001, MAX_FLOAT, record))
 	{
-		return 0.5*Vec3(record.normal.x() + 1, record.normal.y() + 1, record.normal.z() + 1);
+		Vec3 target = record.position + record.normal + random_direction_in_sphere();
+		Ray ray(record.position, target - record.position); //reflection
+		return 0.5*color(ray,world);
 	}
 	else
 	{
@@ -41,9 +56,7 @@ int main()
 	world->add(object2);
 
 	Camera camera;
-
-	default_random_engine e(time(0));
-	uniform_real_distribution<double> ue(0, 1);
+	cout << time(0) << endl;
 
 	os << "P3" << endl;
 	os << nx << " " << ny << endl;
@@ -62,7 +75,7 @@ int main()
 				col += color(r, world);
 			}
 			col /= float(ns);
-
+			col = Vec3(sqrt(col[0]), sqrt(col[1]), sqrt(col[2]));
 			int ir = int(255.99*col[0]);
 			int ig = int(255.99*col[1]);
 			int ib = int(255.99*col[2]);
