@@ -8,7 +8,7 @@ class Ray
 {
 public:
 	Ray() {}
-	Ray(const Vec3& origin, const Vec3& direction) { ori = origin; dir = direction; }
+	Ray(const Vec3 origin, const Vec3 direction) { ori = origin; dir = direction; }
 	virtual ~Ray() {}
 
 	Vec3 origin() const { return ori; }

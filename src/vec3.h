@@ -48,7 +48,21 @@ public:
 	inline float norm2() const { return v[0] * v[0] + v[1] * v[1] + v[2] * v[2]; }
 	inline float norm() const { return sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]); }
 	inline void normalize() { float n = this->norm(); v[0] /= n; v[1] /= n; v[2] /= n; }
-	inline Vec3& unit() { float n = this->norm(); v[0] /= n; v[1] /= n; v[2] /= n; return *this; }
+	inline Vec3 unit() { float n = this->norm(); v[0] /= n; v[1] /= n; v[2] /= n; return *this; }
+	
+	inline Vec3 reflect(Vec3& n) { return *this - n * 2 * (this->dot(n));}
+	inline bool refract(Vec3& n, float n12, Vec3& refracted)
+	{
+		Vec3 unit_v = this->unit();
+		float cos1 = unit_v.dot(n);
+		float cos2_2 = 1 - n12 * n12*(1 - cos1 * cos1);
+		if (cos2_2 > 0)
+		{
+			refracted = (unit_v - n * cos1) * n12 - n * sqrt(cos2_2); // notice the orientation
+			return true;
+		}
+		else return false;
+	}
 
 	friend std::istream& operator>>(std::istream& is, Vec3& t);
 	friend std::ostream& operator<<(std::ostream& os, const Vec3& t);

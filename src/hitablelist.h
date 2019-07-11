@@ -11,7 +11,7 @@ public:
 	HitableList() {}
 	virtual bool hit(Ray& r, float t_min, float t_max, HitRecord& record);
 	virtual ~HitableList() {}
-
+	
 	void add(Hitable* hit);
 
 public:
@@ -23,7 +23,8 @@ bool HitableList::hit(Ray& r, float t_min, float t_max, HitRecord& record)
 	HitRecord temp;
 	bool hit_anything = false;
 	float closet_so_far = t_max;
-	for (int i = 0; i < list.size(); i++)
+	//TODO: prune + GPU parallel
+	for (int i = 0; i < list.size(); i++) //Find the closet hit point 
 	{
 		if (list[i]->hit(r, t_min, closet_so_far, temp))
 		{
